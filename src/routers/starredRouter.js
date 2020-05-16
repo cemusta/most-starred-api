@@ -14,7 +14,7 @@ const controller = require('../controllers/starredController')
  *       - application/json
  *     responses:
  *       200:
- *         description: list all tokens
+ *         description: list all repositories
  *       500:
  *         description: internal server error
  */
