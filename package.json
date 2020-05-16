@@ -10,7 +10,8 @@
     "test:changes": "jest -o",
     "lint": "eslint .",
     "coverage": "jest --collectCoverage",
-    "validate": "npm-run-all lint test:changes"
+    "validate": "npm-run-all lint test:changes",
+    "codecov": "codecov"
   },
   "repository": {
     "type": "git",
