@@ -21,16 +21,16 @@ const mockHeader = {
 }
 
 describe('Testing github service', () => {
-  describe('rateLimitCheck()', () => {
+  describe('checkRateLimit()', () => {
     const githubService = require('../src/services/githubService')
     it('should return correct values from header', () => {
-      const { remain, limit, time } = githubService.rateLimitCheck(mockHeader)
+      const { remain, limit, time } = githubService.checkRateLimit(mockHeader)
       expect(remain).toBe('29')
       expect(limit).toBe('30')
       expect(time).toBeCloseTo(new Date(1589640328 * 1000) - Date.now(), -4) // 5 sec diffrence
     })
     it('should return null if header info is missing', () => {
-      const { remain, limit } = githubService.rateLimitCheck({})
+      const { remain, limit } = githubService.checkRateLimit({})
       expect(remain).toBe(null)
       expect(limit).toBe(null)
     })
