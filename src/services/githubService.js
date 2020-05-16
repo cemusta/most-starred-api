@@ -1,12 +1,11 @@
 const superagent = require('superagent')
+const logger = require('../middlewares/logger').logger
 
 const getStars = async (date, language = null) => {
   try {
-    date = date || new Date()
-
     const request = superagent.get('https://api.github.com/search/repositories')
-
-      .query({ q: queryBuilder(date, language), sort: 'stars', order: 'desc', per_page: 100 })
+      .query(queryBuilder(date, language))
+      .query({ sort: 'stars', order: 'desc', per_page: 10 })
       .set('User-Agent', 'wrapper-api')
 
     if (process.env.GITHUB_TOKEN) {
@@ -19,7 +18,7 @@ const getStars = async (date, language = null) => {
     const res = await request
 
     if (res.status !== 200) {
-      console.debug('handle status', res)
+      logger.info('handle status', res)
       return null
     }
 
@@ -33,46 +32,68 @@ const getStars = async (date, language = null) => {
       id: x.id,
       stars: x.stargazers_count,
       html_url: x.html_url,
-      created_at: x.created_at
+      created_at: x.created_at,
+      language: x.language
     }))
 
+    logger.info(`returned ${items.length} items`)
+
     if (result.incomplete_results) {
-      console.error('Incomplete', result)
+      logger.error('Incomplete', result)
     }
 
-    console.log(items)
+    checkRateLimit(header)
 
-    rateLimitCheck(header)
+    return items
   } catch (err) {
     if (err.status === 403) {
       const res = err.response
-      console.error('rate limit reached.')
-      rateLimitCheck(res.header)
+      logger.error('rate limit reached.')
+      checkRateLimit(res.header)
       return null
     }
 
     if (err.status === 401) {
-      console.error('auth failed.')
+      logger.error('auth failed.')
       return null
     }
 
     // other errors
-    console.error('other', err)
+    // logger.error(err)
+    console.log(err)
   }
 }
 
-const queryBuilder = (date, language) => {
-  console.log({ date, language })
-  return 'edit'
+const queryBuilder = (date = null, language = null) => {
+  let query = 'q='
+
+  logger.debug({ date, language })
+  date = date || new Date()
+  const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date)
+  const mo = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date)
+  const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date)
+  query = query + `created:>${ye}-${mo}-${da}`
+
+  if (language) {
+    query += `+language:${language.toLowerCase()}`
+  }
+
+  return query
 }
 
-const rateLimitCheck = (header) => {
-  const { 'x-ratelimit-limit': limit, 'x-ratelimit-remaining': remain, 'x-ratelimit-reset': reset } = header
-
+const checkRateLimit = (header) => {
+  const { 'x-ratelimit-limit': limit = null, 'x-ratelimit-remaining': remain = null, 'x-ratelimit-reset': reset = null } = header
   const time = new Date(reset * 1000) - Date.now()
-  console.log(`you have ${remain}/${limit} rate left, reset time: ${time / 1000} seconds`)
+  if (limit && remain) {
+    logger.info(`you have ${remain}/${limit} rate left, reset time: ${time / 1000} seconds`)
+  } else {
+    logger.warn('rate limiting info missing, please check api documentation for changes')
+  }
+  return { limit, remain, time }
 }
 
 module.exports = {
-  getStars
+  getStars,
+  queryBuilder,
+  rateLimitCheck: checkRateLimit
 }

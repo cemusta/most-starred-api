@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./src",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "lint": "eslint ."
   },
   "repository": {
@@ -20,14 +20,17 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^8.2.0",
-    "superagent": "^5.2.2"
+    "superagent": "^5.2.2",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-standard": "^14.1.0",
     "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^23.13.0",
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+    "eslint-plugin-standard": "^4.0.1",
+    "jest": "^26.0.1"
   }
 }
