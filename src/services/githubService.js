@@ -39,7 +39,7 @@ const getMostStarred = async (sinceDate = null, language = null) => {
     logger.info(`returned ${items.length} items`)
 
     if (rest.incomplete_results) {
-      logger.error('Incomplete', rest)
+      logger.warn('Incomplete results...')
     }
 
     checkRateLimit(header)

@@ -24,9 +24,10 @@ describe('Testing github service', () => {
   describe('rateLimitCheck()', () => {
     const githubService = require('../src/services/githubService')
     it('should return correct values from header', () => {
-      const { remain, limit } = githubService.rateLimitCheck(mockHeader)
+      const { remain, limit, time } = githubService.rateLimitCheck(mockHeader)
       expect(remain).toBe('29')
       expect(limit).toBe('30')
+      expect(time).toBeCloseTo(new Date(1589640328 * 1000) - Date.now(), -4) // 5 sec diffrence
     })
     it('should return null if header info is missing', () => {
       const { remain, limit } = githubService.rateLimitCheck({})
@@ -49,7 +50,7 @@ describe('Testing github service', () => {
   })
 
   describe('getMostStarred()', () => {
-    it('should stuff', async () => {
+    it('should return item list from github api', async () => {
       jest.mock('superagent', () => ({
         get: jest.fn(() => {}).mockReturnThis(),
         query: jest.fn(() => {}).mockReturnThis(),

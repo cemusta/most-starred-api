@@ -1,23 +1,25 @@
+
+const config = require('./config')
 const logger = require('./middlewares/logger').logger
-const githubService = require('./services/githubService')
 
-require('dotenv').config()
+let server = null
 
-const Run = async () => {
-  logger.info('test run started')
+async function startServer () {
   try {
-    const { items } = await githubService.getMostStarred(new Date('2019-01-01'), 'python')
+    const app = require('./app')
 
-    if (items) {
-      for (const x of items) {
-        logger.info(`${x.name} - ${x.stars} - ${x.language}`)
-      }
-    }
-  } catch (err) {
-    logger.error(err.message)
+    server = app.listen(config.server_port)
+
+    const port = server.address().port
+
+    logger.info(`App started listening at port: ${port}`)
+  } catch (ex) {
+    logger.error('express init failed: ', ex)
   }
-
-  logger.info('test run ended')
 }
 
-Run()
+startServer()
+
+exports.stopServer = async () => {
+  await server.close()
+}
