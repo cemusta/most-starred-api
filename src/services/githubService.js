@@ -1,11 +1,11 @@
 const superagent = require('superagent')
 const logger = require('../middlewares/logger').logger
 
-const getStars = async (date, language = null) => {
+const getMostStarred = async (sinceDate = null, language = null) => {
   try {
     const request = superagent.get('https://api.github.com/search/repositories')
-      .query(queryBuilder(date, language))
-      .query({ sort: 'stars', order: 'desc', per_page: 10 })
+      .query(queryBuilder(sinceDate, language))
+      .query({ sort: 'stars', order: 'desc', per_page: 100 })
       .set('User-Agent', 'wrapper-api')
 
     if (process.env.GITHUB_TOKEN) {
@@ -24,7 +24,7 @@ const getStars = async (date, language = null) => {
 
     const { text, header } = res
 
-    let { items, ...result } = JSON.parse(text)
+    let { items, ...rest } = JSON.parse(text)
 
     items = items.map((x, i) => ({
       idx: i,
@@ -38,13 +38,13 @@ const getStars = async (date, language = null) => {
 
     logger.info(`returned ${items.length} items`)
 
-    if (result.incomplete_results) {
-      logger.error('Incomplete', result)
+    if (rest.incomplete_results) {
+      logger.error('Incomplete', rest)
     }
 
     checkRateLimit(header)
 
-    return items
+    return { items, ...rest }
   } catch (err) {
     if (err.status === 403) {
       const res = err.response
@@ -58,9 +58,13 @@ const getStars = async (date, language = null) => {
       return null
     }
 
-    // other errors
-    // logger.error(err)
-    console.log(err)
+    if (err.status >= 500) {
+      logger.error('server error.')
+      return null
+    }
+
+    // throw other unhandled errors
+    throw err
   }
 }
 
@@ -93,7 +97,7 @@ const checkRateLimit = (header) => {
 }
 
 module.exports = {
-  getStars,
+  getMostStarred,
   queryBuilder,
   rateLimitCheck: checkRateLimit
 }

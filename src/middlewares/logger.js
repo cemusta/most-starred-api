@@ -5,10 +5,12 @@ const logFormat = winston.format.printf(function (info) {
 })
 
 const consoleTransport = new winston.transports.Console({
-  format: winston.format.combine(winston.format.colorize(), logFormat)
+  format: winston.format.combine(winston.format.colorize(), logFormat),
+  handleExceptions: true
 })
 const myWinstonOptions = {
-  transports: [consoleTransport]
+  transports: [consoleTransport],
+  exitOnError: false
 }
 // eslint-disable-next-line new-cap
 const logger = new winston.createLogger(myWinstonOptions)
