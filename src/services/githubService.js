@@ -1,10 +1,19 @@
 const superagent = require('superagent')
 const logger = require('../middlewares/logger').logger
+const NodeCache = require('node-cache')
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 })
 
 const getMostStarred = async (sinceDate = null, language = null) => {
   try {
+    const query = queryBuilder(sinceDate, language)
+
+    let result = cache.get(query)
+    if (result) {
+      return { result, ttl: cache.getTtl(query) } // cache hit
+    }
+
     const request = superagent.get('https://api.github.com/search/repositories')
-      .query(queryBuilder(sinceDate, language))
+      .query(query)
       .query({ sort: 'stars', order: 'desc', per_page: 100 })
       .set('User-Agent', 'wrapper-api')
 
@@ -36,15 +45,19 @@ const getMostStarred = async (sinceDate = null, language = null) => {
       language: x.language
     }))
 
-    logger.info(`returned ${items.length} items`)
+    logger.debug(`returned ${items.length} items`)
 
     if (rest.incomplete_results) {
       logger.warn('Incomplete results...')
     }
 
-    checkRateLimit(header)
+    const limits = checkRateLimit(header)
 
-    return { items, ...rest }
+    result = { ...rest, items }
+
+    cache.set(query, result, 60) // add result to cache
+
+    return { result, limits }
   } catch (err) {
     if (err.status === 403) {
       const res = err.response
@@ -60,7 +73,7 @@ const getMostStarred = async (sinceDate = null, language = null) => {
 
     if (err.status >= 500) {
       logger.error('server error.')
-      return null
+      throw err
     }
 
     // throw other unhandled errors
