@@ -5,8 +5,10 @@ const logFormat = winston.format.printf(function (info) {
 })
 
 const consoleTransport = new winston.transports.Console({
+  name: 'console.log',
   format: winston.format.combine(winston.format.colorize(), logFormat),
-  handleExceptions: true
+  handleExceptions: true,
+  silent: process.env.NODE_ENV === 'test' // disable logs on test runner
 })
 const myWinstonOptions = {
   transports: [consoleTransport],

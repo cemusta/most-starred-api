@@ -1,14 +1,3 @@
-jest.doMock('../src/middlewares/logger', () => {
-  return {
-    logger: {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn()
-    }
-  }
-})
-
 beforeEach(() => {
   jest.resetModules()
 })
@@ -22,7 +11,7 @@ const mockHeader = {
 
 describe('Testing github service', () => {
   describe('checkRateLimit()', () => {
-    const githubService = require('../src/services/githubService')
+    const githubService = require('../../src/services/githubService')
     it('should return correct values from header', () => {
       const { remain, limit, time } = githubService.checkRateLimit(mockHeader)
       expect(remain).toBe('29')
@@ -37,7 +26,7 @@ describe('Testing github service', () => {
   })
 
   describe('queryBuilder()', () => {
-    const githubService = require('../src/services/githubService')
+    const githubService = require('../../src/services/githubService')
     it('should return correct query with only date', () => {
       const query = githubService.queryBuilder(new Date('2015-11-03'))
       expect(query).toBe('q=created:>2015-11-03')
@@ -58,7 +47,7 @@ describe('Testing github service', () => {
           return { status: 200, text: mockText, header: mockHeader }
         })
       }))
-      const githubService = require('../src/services/githubService')
+      const githubService = require('../../src/services/githubService')
 
       const result = await githubService.getMostStarred(new Date('2019-01-01'), 'python')
       expect(result).toHaveProperty('incomplete_results', true)
