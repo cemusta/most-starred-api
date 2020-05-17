@@ -99,5 +99,5 @@ const checkRateLimit = (header) => {
 module.exports = {
   getMostStarred,
   queryBuilder,
-  rateLimitCheck: checkRateLimit
+  checkRateLimit
 }
